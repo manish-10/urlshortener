@@ -1,11 +1,12 @@
-import { useState } from 'react'
-export const ShortenUrlForm = ({ btnText }) => {
-	const surl = `https://urlshortner-1.ayushk1804.repl.co`
+import { useState, useEffect } from 'react'
 
+export const ShortenUrlForm = ({ btnText }) => {
+	
+	useEffect(() => (setSurl(window.location.href)), [])
 	const [longUrl, setLongUrl] = useState("");
 	const [shortUrl, setShortUrl] = useState("");
-	const [data, setData] = useState("123456");
-
+	const [userHash, setUserHash] = useState("123456");
+  const [surl,setSurl]=useState();
 	const handleLongUrl = (e) => {
 		setLongUrl(e.target.value)
 	}
@@ -18,22 +19,24 @@ export const ShortenUrlForm = ({ btnText }) => {
 		const requestOptions = {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ shortUrl: `${shortUrl}`, longUrl: `${longUrl}`, userId: `${data}` })
+			body: JSON.stringify({ shortUrl: `${shortUrl}`, longUrl: `${longUrl}`, userId: `${userHash}` })
 		};
-		const res = await fetch('https://urlshortner-1.ayushk1804.repl.co/api', requestOptions)
+		const res = await fetch(`/api/v1/update/${shortUrl}?authHash=${userHash}&lurl=${longUrl}`, requestOptions)
 		const response = await res.json();
-		setData(response.userId)
+		setSurl(response.data.shortUrl)
 		console.log(response.success)
 	}
+  
 
 	return (
 		<>
+     
 			<form className=" m-4 rounded-lg">
-				<div className="grid grid-cols-12 grid-rows-12 gap-7 container-xl w-full align-center">
-					<input type="url" id="longurl" name="longurl" className=" row-span-1 col-span-8 bg-white px-4 py-2 border-t border-b border-l text-gray-700 focus:outline-none w-auto rounded" placeholder="That long url" onChange={handleLongUrl} />
+				<div className="grid grid-cols-12 grid-rows-12 gap-7 w-full align-center">
+					<input type="url" id="longurl" name="longurl" className=" row-span-1 col-span-8 bg-white px-4 py-2 border-t border-b border-l text-gray-700 focus:outline-none w-auto rounded" placeholder="https://longurl.sucks" onChange={handleLongUrl} required />
 					<button className="row-span-1 col-span-4 min-w-max rounded-full bg-yellow-400  text-gray-800 font-bold p-2 uppercase border-yellow-400 border-t border-b border-r focus:outline-none focus:ring focus-ring-2 focus:ring-yellow-400" onClick={handleSubmit}>{btnText}</button>
-					<input type="text" id="shorturl" name="shorturl" className="row-span-1 col-span-8 bg-white px-4 py-2 border-t border-b border-l text-gray-700 focus:outline-none w-auto rounded" placeholder="Snip it to this!" onChange={handleShortUrl} />
-					<p className="mr-auto row-span-1 col-span-full text-sm font-bold">{"The Short URL is "}<a className="text-blue-600 underline cursor-pointer" href={surl}>{surl}</a></p>
+					<input type="text" id="shorturl" name="shorturl" className="row-span-1 col-span-8 bg-white px-4 py-2 border-t border-b border-l text-gray-700 focus:outline-none w-auto rounded" placeholder="Snip it to this!" onChange={handleShortUrl} required />
+					{surl?<p className="mr-auto row-span-1 col-span-full text-sm font-bold">{"The Short URL is "}<a className="text-blue-600 underline cursor-pointer" href={`${surl}${shortUrl}`}>{`${surl}${shortUrl}`}</a></p>:null}
 				</div>
 			</form>
 		</>

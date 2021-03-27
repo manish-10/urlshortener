@@ -1,47 +1,54 @@
 import DBConnect from '../../../../src/Utils/DBConnect';
-import URLSchema from '../../../../src/Models/URLSchema';
-import { useSession } from 'next-auth/client'
+import URLSchema from '../../../../src/Models/UrlSchema';
+
+DBConnect();
 
 export default async function UpdateShortURLs(req, res) {
-	const [session, loading] = useSession()
+	// console.log(req)
 	const { method } = req;
+	console.log(method)
+	const { query: { surl, lurl, authHash } } = req
 	switch (method) {
-		// update function
-		case 'POST':
-			try {
-				const { query: { surl, lurl } } = req
-				if (session && session.user.email) {
-					const userEmail = session.user.email
-					// update hash with bcrypt (encrypt email) for security
-					const userEmailHash = '1234';
-					// we can include upsert as surl is unique and we are adding all values
-					const updated = await URLSchema.findOneAndUpdate({ "shortUrl": surl, userId: userEmailHash }, { userId: userEmailHash, shortUrl: surl, longUrl: lurl }, { new: true, upsert: true }, (err, updatedData) => {
-						if (err) {
-							res.status(500).json({ success: false, message: err })
-						}
-						res.status(200).json({ success: true, data: updatedData })
-					})
-				}
-				else {
-					res.status(400).send("Sign In to edit your URLs")
-				}
-			}
-			break;
+		// Update function
 		case 'PUT':
 			try {
-				if (session && session.user.email) {
-					const userEmail = session.user.email
-				}
-				else {
-					const userEmail = 'guest@mysite.com'
-				}
+				// we can include upsert as surl is unique and we are adding all values
+				const updatedDoc = await URLSchema.findOneAndUpdate({ shortUrl: surl, userId: authHash }, { userId: authHash, shortUrl: surl, longUrl: lurl }, { new: true, upsert: true }, (err, updatedDoc) => {
+					if (err) {
+						res.status(500).json({ success: false, message: err })
+					}
+					res.status(200).json({ success: true, data: updatedDoc })
+				})
+			}
+			catch (err) {
+				res.status(404).json(err)
+			}
+			break;
+		// Create funciton
+		case 'POST':
+			try {
+				const createdDoc = await URLSchema.create({ shortUrl: surl, longUrl: lurl, userId: authHash }, (err, createdDoc) => {
+					if (err) {
+						res.status(500).json({ success: false, message: err })
+					}
+					res.status(200).json({ success: true, data: createdDoc })
+				})
+			} catch (err) {
+				res.status(404).json({ err })
 			}
 			break;
 		case 'DELETE':
 			try {
-
+				const deletedDoc = await URLSchema.findOneAndDelete({ shortUrl: surl, userId: authHash }, null, (err, deletedDoc) => {
+					if (err) {
+						res.status(500).json({ success: false, message: err })
+					}
+					res.status(200).json({ success: true, data: deletedDoc })
+				})
+			} catch (err) {
+				res.status(404).json({ err })
 			}
-		break;
+			break;
 		default:
 			res.status(400).json({ message: "We only support {POST, PUT and DELETE} requests on this api" });
 			break;
