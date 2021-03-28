@@ -1,11 +1,12 @@
-import {IndexNav} from '../NavBar/IndexNav'
-import {Footer} from '../Footer/Footer'
+import { IndexNav } from '../NavBar/IndexNav'
+import { Footer } from '../Footer/Footer'
+
 export const Layout = ({ children }) => {
 	return (
-		<div className="bg-red-300">
-		<IndexNav/>
+		<div className="bg-gray-300">
+			<IndexNav />
 			{children}
-      <Footer/>
+			<Footer />
 		</div>
 	)
 }
